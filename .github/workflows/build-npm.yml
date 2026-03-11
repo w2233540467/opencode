@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - name: Checkout
@@ -20,21 +20,25 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Install cross-platform dependencies
-        run: |
-          bun install --os="*" --cpu="*" @opentui/core@latest
-          bun install --os="*" --cpu="*" @parcel/watcher@latest
-
-      - name: Build NPM package
+      - name: Build NPM package (macOS ARM64)
         run: |
           cd packages/opencode
-          bun run script/build.ts --single --skip-install
+          bun run script/build.ts --single
         env:
           OPENCODE_VERSION: ${{ github.ref_name }}
           OPENCODE_CHANNEL: "dev"
 
+      - name: Find and rename ARM64 build
+        run: |
+          cd packages/opencode/dist
+          for dir in */; do
+            if echo "$dir" | grep -q "darwin-arm64"; then
+              mv "$dir" "opencode-darwin-arm64"
+            fi
+          done
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: opencode-npm-package
-          path: packages/opencode/dist
+          name: opencode-macos-arm64
+          path: packages/opencode/dist/opencode-darwin-arm64
