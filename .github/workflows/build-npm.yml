@@ -20,10 +20,15 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
+      - name: Install cross-platform dependencies
+        run: |
+          bun install --os="*" --cpu="*" @opentui/core@latest
+          bun install --os="*" --cpu="*" @parcel/watcher@latest
+
       - name: Build NPM package
         run: |
           cd packages/opencode
-          bun run script/build.ts --single
+          bun run script/build.ts --single --skip-install
         env:
           OPENCODE_VERSION: ${{ github.ref_name }}
           OPENCODE_CHANNEL: "dev"
